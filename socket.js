@@ -1,6 +1,6 @@
 /*
  * @license
- * angular-socket-io v0.7.1
+ * angular-socket-io v0.7.2
  * (c) 2014 Brian Ford http://briantford.com
  * License: MIT
  */
@@ -29,9 +29,10 @@ angular.module('btford.socket-io', []).
       return function socketFactory (options) {
         options = options || {};
         var socket = null;
-        
+        var socketOptions = options.socketOptions || {};
+        var socketUri = options.uri;
         if(options.autoStart) {
-          socket = options.ioSocket || io.connect(options.uri);
+          socket = options.ioSocket || io.connect(socketUri, socketOptions);
         }
 
         var prefix = options.prefix === undefined ? defaultPrefix : options.prefix ;
@@ -116,7 +117,7 @@ angular.module('btford.socket-io', []).
           connect: function() { if(socket) { wrappedSocket.connect.apply(wrappedSocket, arguments); } else { cachedEvents.push(['connect', arguments])}},
           forward: function() { if(socket) { wrappedSocket.forward.apply(wrappedSocket, arguments); } else { cachedEvents.push(['forward', arguments])}},
           start: function() { 
-            socket = io.connect(options.uri);
+            socket = io.connect(socketUri, socketOptions);
             for(var i in cachedEvents) {
               var method = cachedEvents[i].shift();
               var args = cachedEvents[i].shift();
