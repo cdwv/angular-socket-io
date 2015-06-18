@@ -1,3 +1,10 @@
+## Fork
+
+This fork aims to add late initialization to angular-socket-io
+
+It's not perfect - just good enough for me ATM. All credit to original author.
+
+
 # angular-socket-io [![Build Status](https://travis-ci.org/btford/angular-socket-io.svg)](https://travis-ci.org/btford/angular-socket-io)
 
 Bower Component for using AngularJS with [Socket.IO](http://socket.io/),

@@ -1,6 +1,6 @@
 /*
  * @license
- * angular-socket-io v0.7.0
+ * angular-socket-io v0.7.1
  * (c) 2014 Brian Ford http://briantford.com
  * License: MIT
  */
@@ -28,7 +28,12 @@ angular.module('btford.socket-io', []).
 
       return function socketFactory (options) {
         options = options || {};
-        var socket = options.ioSocket || io.connect();
+        var socket = null;
+        
+        if(options.autoStart) {
+          socket = options.ioSocket || io.connect(options.uri);
+        }
+
         var prefix = options.prefix === undefined ? defaultPrefix : options.prefix ;
         var defaultScope = options.scope || $rootScope;
 
@@ -97,7 +102,30 @@ angular.module('btford.socket-io', []).
           }
         };
 
-        return wrappedSocket;
+        var cachedEvents = [];
+
+        // When autostart is disabled cache all triggers until ready
+        var cachedSocket = {
+          on: function() { if(socket) { wrappedSocket.on.apply(wrappedSocket, arguments); } else { cachedEvents.push(['on', arguments])}},
+          addListener: function() { if(socket) { wrappedSocket.addListener.apply(wrappedSocket, arguments); } else { cachedEvents.push(['addListener', arguments])}},
+          once: function() { if(socket) { wrappedSocket.once.apply(wrappedSocket, arguments); } else { cachedEvents.push(['once', arguments])}},
+          emit: function() { if(socket) { wrappedSocket.emit.apply(wrappedSocket, arguments); } else { cachedEvents.push(['emit', arguments])}},
+          removeListener: function() { if(socket) { wrappedSocket.removeListener.apply(wrappedSocket, arguments); } else { cachedEvents.push(['removeListener', arguments])}},
+          removeAllListeners: function() { if(socket) { wrappedSocket.removeAllListeners.apply(wrappedSocket, arguments); } else { cachedEvents.push(['removeAllListeners', arguments])}},
+          disconnect: function() { if(socket) { wrappedSocket.disconnect.apply(wrappedSocket, arguments); } else { cachedEvents.push(['disconnect', arguments])}},
+          connect: function() { if(socket) { wrappedSocket.connect.apply(wrappedSocket, arguments); } else { cachedEvents.push(['connect', arguments])}},
+          forward: function() { if(socket) { wrappedSocket.forward.apply(wrappedSocket, arguments); } else { cachedEvents.push(['forward', arguments])}},
+          start: function() { 
+            socket = io.connect(options.uri);
+            for(var i in cachedEvents) {
+              var method = cachedEvents[i].shift();
+              var args = cachedEvents[i].shift();
+              wrappedSocket[method].apply(wrappedSocket, args);
+            }
+          }
+        };
+
+        return cachedSocket;
       };
     }];
   });
