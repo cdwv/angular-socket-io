@@ -107,22 +107,30 @@ angular.module('btford.socket-io', []).
 
         // When autostart is disabled cache all triggers until ready
         var cachedSocket = {
-          on: function() { if(socket) { wrappedSocket.on.apply(wrappedSocket, arguments); } else { cachedEvents.push(['on', arguments])}},
-          addListener: function() { if(socket) { wrappedSocket.addListener.apply(wrappedSocket, arguments); } else { cachedEvents.push(['addListener', arguments])}},
-          once: function() { if(socket) { wrappedSocket.once.apply(wrappedSocket, arguments); } else { cachedEvents.push(['once', arguments])}},
-          emit: function() { if(socket) { wrappedSocket.emit.apply(wrappedSocket, arguments); } else { cachedEvents.push(['emit', arguments])}},
-          removeListener: function() { if(socket) { wrappedSocket.removeListener.apply(wrappedSocket, arguments); } else { cachedEvents.push(['removeListener', arguments])}},
-          removeAllListeners: function() { if(socket) { wrappedSocket.removeAllListeners.apply(wrappedSocket, arguments); } else { cachedEvents.push(['removeAllListeners', arguments])}},
-          disconnect: function() { if(socket) { wrappedSocket.disconnect.apply(wrappedSocket, arguments); } else { cachedEvents.push(['disconnect', arguments])}},
-          connect: function() { if(socket) { wrappedSocket.connect.apply(wrappedSocket, arguments); } else { cachedEvents.push(['connect', arguments])}},
-          forward: function() { if(socket) { wrappedSocket.forward.apply(wrappedSocket, arguments); } else { cachedEvents.push(['forward', arguments])}},
-          start: function() { 
+          on: function() { if(socket) { wrappedSocket.on.apply(wrappedSocket, arguments); } else { cachedEvents.push(['on', arguments]); }},
+          addListener: function() { if(socket) { wrappedSocket.addListener.apply(wrappedSocket, arguments); } else { cachedEvents.push(['addListener', arguments]); }},
+          once: function() { if(socket) { wrappedSocket.once.apply(wrappedSocket, arguments); } else { cachedEvents.push(['once', arguments]); }},
+          emit: function() { if(socket) { wrappedSocket.emit.apply(wrappedSocket, arguments); } else { cachedEvents.push(['emit', arguments]); }},
+          removeListener: function() { if(socket) { wrappedSocket.removeListener.apply(wrappedSocket, arguments); } else { cachedEvents.push(['removeListener', arguments]); }},
+          removeAllListeners: function() { if(socket) { wrappedSocket.removeAllListeners.apply(wrappedSocket, arguments); } else { cachedEvents.push(['removeAllListeners', arguments]); }},
+          disconnect: function() { if(socket) { wrappedSocket.disconnect.apply(wrappedSocket, arguments); } else { cachedEvents.push(['disconnect', arguments]); }},
+          connect: function() { if(socket) { wrappedSocket.connect.apply(wrappedSocket, arguments); } else { cachedEvents.push(['connect', arguments]); }},
+          forward: function() { if(socket) { wrappedSocket.forward.apply(wrappedSocket, arguments); } else { cachedEvents.push(['forward', arguments]); }},
+          start: function() {
             socket = io.connect(socketUri, socketOptions);
-            for(var i in cachedEvents) {
-              var method = cachedEvents[i].shift();
-              var args = cachedEvents[i].shift();
-              wrappedSocket[method].apply(wrappedSocket, args);
-            }
+            cachedEvents.forEach(function(ev) {
+              try {
+                wrappedSocket[ev.slice(0,1).pop()].apply(wrappedSocket, ev.slice(1).pop());
+              } catch(e) {
+                console.log('Invalid call', e, ev);
+              }
+            });
+
+//            for(var i in cachedEvents) {
+//              var method = cachedEvents[i].shift();
+//              var args = cachedEvents[i].shift();
+//              wrappedSocket[method].apply(wrappedSocket, args);
+//            }
           }
         };
 
